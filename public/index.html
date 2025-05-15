@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kick Giveaway Bot</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 40px; }
+    .user { padding: 5px; font-size: 20px; }
+    #winner { font-size: 24px; margin-top: 20px; color: green; }
+  </style>
+</head>
+<body>
+  <h1>Participants</h1>
+  <div id="users"></div>
+  <button id="roll">ROLL</button>
+  <div id="winner"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const usersDiv = document.getElementById('users');
+    const winnerDiv = document.getElementById('winner');
+
+    socket.on('update', (users) => {
+      usersDiv.innerHTML = '';
+      users.forEach(user => {
+        const div = document.createElement('div');
+        div.className = 'user';
+        div.textContent = user;
+        usersDiv.appendChild(div);
+      });
+    });
+
+    socket.on('winner', (winner) => {
+      winnerDiv.textContent = `🎉 Winner: ${winner} 🎉`;
+    });
+
+    document.getElementById('roll').addEventListener('click', () => {
+      socket.emit('roll');
+    });
+  </script>
+</body>
+</html>
