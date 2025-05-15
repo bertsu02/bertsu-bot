@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-
+let joinKeyword = '!join';
 const joinedUsers = new Set();
 
 const app = express();
@@ -11,7 +11,7 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-const CHATROOM_ID = 15856785; // your chatroom ID
+const CHATROOM_ID = 15856785;
 const ws = new WebSocket('wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false');
 
 ws.on('open', () => {
@@ -34,7 +34,7 @@ ws.on('message', (raw) => {
       const content = data?.content?.toLowerCase();
       const username = data?.sender?.username;
 
-      if (content?.includes('!join') && username) {
+      if (content?.includes(joinKeyword) && username) {
         if (!joinedUsers.has(username)) {
           joinedUsers.add(username);
           console.log(`✅ ${username} joined`);
@@ -47,6 +47,7 @@ ws.on('message', (raw) => {
   }
 });
 
+
 ws.on('close', () => {
   console.log('⚠️ WebSocket closed');
 });
@@ -56,15 +57,30 @@ ws.on('error', (err) => {
 });
 
 io.on('connection', (socket) => {
-  socket.emit('update', Array.from(joinedUsers));
+ socket.emit('update', Array.from(joinedUsers));
+  socket.emit('keyword', joinKeyword);
+
+  socket.on('setKeyword', (newKeyword) => {
+    joinKeyword = newKeyword.trim().toLowerCase();
+    console.log(`🔑 Join keyword set to: ${joinKeyword}`);
+  });
 
   socket.on('roll', () => {
     if (joinedUsers.size > 0) {
       const usersArray = Array.from(joinedUsers);
       const winner = usersArray[Math.floor(Math.random() * usersArray.length)];
+      joinedUsers.delete(winner);
+      io.emit('update', Array.from(joinedUsers));
       io.emit('winner', winner);
       console.log(`🎉 Winner: ${winner}`);
     }
+  });
+
+  socket.on('reset', () => {
+    joinedUsers.clear();
+    io.emit('update', []);
+    io.emit('winner', null);
+    console.log('🔄 Participants reset');
   });
 });
 

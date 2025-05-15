@@ -1,44 +1,136 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Kick Giveaway Bot</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 40px; }
-    .user { padding: 5px; font-size: 20px; }
-    #winner { font-size: 24px; margin-top: 20px; color: green; }
-  </style>
-</head>
 <body>
-  <h1>Participants</h1>
-  <div id="users"></div>
-  <button id="roll">ROLL</button>
-  <div id="winner"></div>
+  <h1>Kick Giveaway Bot</h1>
+  
+  <div style="margin-bottom:20px;">
+    <label for="keyword"><strong>Keyword to Join:</strong></label>
+    <input type="text" id="keyword" placeholder="!join" value="!join" style="font-size:16px; padding:5px; width:120px;"/>
+  </div>
+
+  <h2>Participants</h2>
+<div id="users" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px; max-width: 400px; margin: 0 auto;"></div>
+
+  <div style="margin-top: 25px;">
+    <button id="roll" style="font-size:18px; padding: 10px 25px; margin-right: 15px; cursor:pointer; background:#27ae60; color:#fff; border:none; border-radius:5px;">🎲 Roll</button>
+    <button id="reset" style="font-size:18px; padding: 10px 25px; cursor:pointer; background:#c0392b; color:#fff; border:none; border-radius:5px;">🔄 Reset</button>
+  </div>
+
+  <div id="winner" style="margin-top:30px; font-size:24px; color:#2980b9; font-weight:bold;"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    const usersDiv = document.getElementById('users');
-    const winnerDiv = document.getElementById('winner');
 
-    socket.on('update', (users) => {
-      usersDiv.innerHTML = '';
-      users.forEach(user => {
-        const div = document.createElement('div');
-        div.className = 'user';
-        div.textContent = user;
-        usersDiv.appendChild(div);
-      });
+   const usersDiv = document.getElementById('users');
+const winnerDiv = document.getElementById('winner');
+const rollBtn = document.getElementById('roll');
+const resetBtn = document.getElementById('reset');
+const keywordInput = document.getElementById('keyword');
+
+let currentUsers = [];
+let animating = false;
+
+function renderUsers(users) {
+  currentUsers = [...users];
+  usersDiv.innerHTML = '';
+
+  if (users.length === 0) {
+    usersDiv.textContent = 'No participants yet.';
+    return;
+  }
+
+  users.forEach(user => {
+    const userBox = document.createElement('div');
+    userBox.textContent = user;
+    userBox.style.border = '2px solid #34495e';
+    userBox.style.borderRadius = '8px';
+    userBox.style.padding = '10px';
+    userBox.style.fontSize = '14px';
+    userBox.style.textAlign = 'center';
+    userBox.style.userSelect = 'none';
+    userBox.style.backgroundColor = '#ecf0f1';
+    userBox.classList.add('user-box');
+    usersDiv.appendChild(userBox);
+  });
+}
+
+socket.on('update', (users) => {
+  if (animating) return; 
+  renderUsers(users);
+});
+
+socket.on('winner', (winner) => {
+  winnerDiv.textContent = winner ? `🎉 Winner: ${winner} 🎉` : '';
+  animating = false;
+});
+
+rollBtn.onclick = () => {
+  if (animating || currentUsers.length === 0) return;
+  animating = true;
+  winnerDiv.textContent = '';
+
+  socket.emit('roll');
+};
+
+socket.on('winner', (winner) => {
+  animateWinnerPick(winner);
+});
+
+resetBtn.onclick = () => {
+  animating = false;
+  socket.emit('reset');
+  winnerDiv.textContent = '';
+};
+
+keywordInput.onchange = () => {
+  socket.emit('setKeyword', keywordInput.value.toLowerCase());
+};
+
+function animateWinnerPick(winner) {
+  let usersCopy = [...currentUsers];
+
+  function removeOne() {
+    if (usersCopy.length <= 1) {
+      highlightWinner();
+      return;
+    }
+
+    let removable = usersCopy.filter(u => u !== winner);
+    let toRemove = removable[Math.floor(Math.random() * removable.length)];
+
+    usersCopy = usersCopy.filter(u => u !== toRemove);
+
+    const boxes = Array.from(usersDiv.children);
+    boxes.forEach(box => {
+      if (box.textContent === toRemove) {
+        box.style.transition = 'opacity 0.3s';
+        box.style.opacity = '0';
+        setTimeout(() => box.remove(), 300);
+      }
     });
 
-    socket.on('winner', (winner) => {
-      winnerDiv.textContent = `🎉 Winner: ${winner} 🎉`;
-    });
+    setTimeout(() => {
+      removeOne();
+    }, 200); 
+  }
 
-    document.getElementById('roll').addEventListener('click', () => {
-      socket.emit('roll');
+  function highlightWinner() {
+    const boxes = Array.from(usersDiv.children);
+    boxes.forEach(box => {
+      if (box.textContent === winner) {
+        box.style.backgroundColor = '#27ae60';
+        box.style.color = 'white';
+        box.style.fontWeight = 'bold';
+        box.style.fontSize = '18px';
+      } else {
+        box.remove();
+      }
     });
+    winnerDiv.textContent = `🎉 Winner: ${winner} 🎉`;
+    animating = false;
+  }
+
+  removeOne();
+}
+
   </script>
 </body>
-</html>
