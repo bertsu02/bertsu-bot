@@ -128,13 +128,13 @@ function connectToKickChat() {
           io.emit('updateGrid', grid);
           io.emit('log', `⚙️ Difficulty set to EASY`);
         }
-        if (isAdmin && content.startsWith('!medium')) {
+        if (username.toLowerCase() === activePlayer && content.startsWith('!medium')) {
           difficulty = 'medium'; BOMB_COUNT = 7;
           resetGrid();
           io.emit('updateGrid', grid);
           io.emit('log', `⚙️ Difficulty set to MEDIUM`);
         }
-        if (isAdmin && content.startsWith('!hard')) {
+        if (username.toLowerCase() === activePlayer && content.startsWith('!hard')) {
           difficulty = 'hard'; BOMB_COUNT = 10;
           resetGrid();
           io.emit('updateGrid', grid);
