@@ -1,136 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kick Mines Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #00ffcc;
+    }
+    #activePlayer {
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #00ffcc;
+    }
+    #difficultyLabel {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #ffaa00;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(5, 100px);
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.2s ease;
+    }
+    .cell.revealed {
+      background: #00ffcc;
+      color: #000;
+      cursor: default;
+    }
+    .cell.bomb {
+      background: #ff4d4d;
+      color: #000;
+    }
+    #log {
+      margin-top: 20px;
+      max-width: 400px;
+      text-align: left;
+    }
+    #log div {
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    #container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    #instructions {
+      width: 500px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 18px;
+      color: #ccc;
+      max-height: 600px;
+    }
+
+    #instructions h2 {
+      color: #ffaa00;
+      margin-bottom: 10px;
+    }
+
+    #instructions code {
+      background: #333;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #00ffcc;
+    }
+
+    #game {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #difficultyValue.easy {
+      color: #00ff00;
+    }
+    #difficultyValue.medium {
+      color: #ffff00;
+    }
+    #difficultyValue.hard {
+      color: #ff4444;
+    }
+
+    #status {
+      width: 500px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: monospace;
+      color: #ddd;
+      text-align: center;
+      max-height: 600px;
+    }
+
+    #currentMultiplier {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ffcc;
+      margin: 10px 0;
+    }
+
+    #confirmCashout {
+      margin-top: 10px;
+      background-color: #ff5e57;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
 <body>
-  <h1>Kick Giveaway Bot</h1>
-  
-  <div style="margin-bottom:20px;">
-    <label for="keyword"><strong>Keyword to Join:</strong></label>
-    <input type="text" id="keyword" placeholder="!join" value="!join" style="font-size:16px; padding:5px; width:120px;"/>
+  <div id="container">
+    <div id="instructions">
+      <h2>Instructions</h2>
+      <ul>
+        <li>Mods and streamer types <code>!player Username</code> in Kick chat to give control.</li>
+        <li>Players can change difficulty with <code>!easy</code>, <code>!medium</code>, <code>!hard</code>.</li>
+        <li>Then Player <code>!pick x y</code> to select a cell (e.g. <code>!pick 2 3</code>).</li>
+        <li>Player can cashout at any point with <code>!cashout</code></li>
+        <li>Admins can clear current player with <code>!clearplayer</code></li>
+      </ul>
+    </div>
+
+    <div id="game">
+      <h1>Kick Mines 💣</h1>
+      <div id="difficultyLevel">
+        Difficulty: <span id="difficultyValue" class="easy">EASY</span>
+      </div>
+      <div id="grid"></div>
+      <div id="log"></div>
+    </div>
+
+<div id="status">
+  <h2>Current Multiplier</h2>
+  <div id="currentMultiplier">x1.00</div>
+  <button id="confirmCashout" style="display: none;">Confirm Cashout</button>
+ <h2>Current Player</h2>
+  <div id="playerInfo" style="margin-top: 20px; text-align: center;">
+    <img id="playerAvatar" src="" alt="Player Avatar" style="width: 80px; height: 80px; border-radius: 50%; display: none; margin-bottom: 10px;" />
+    <div id="playerName" style="font-size: 18px; color: #00ffcc;">No player</div>
   </div>
+</div>
 
-  <h2>Participants</h2>
-<div id="users" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px; max-width: 400px; margin: 0 auto;"></div>
-
-  <div style="margin-top: 25px;">
-    <button id="roll" style="font-size:18px; padding: 10px 25px; margin-right: 15px; cursor:pointer; background:#27ae60; color:#fff; border:none; border-radius:5px;">🎲 Roll</button>
-    <button id="reset" style="font-size:18px; padding: 10px 25px; cursor:pointer; background:#c0392b; color:#fff; border:none; border-radius:5px;">🔄 Reset</button>
   </div>
-
-  <div id="winner" style="margin-top:30px; font-size:24px; color:#2980b9; font-weight:bold;"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    const gridEl = document.getElementById('grid');
+    const logEl = document.getElementById('log');
+    const difficultyEl = document.getElementById('difficultyValue');
+    const multiplierEl = document.getElementById('currentMultiplier');
+    const confirmCashoutBtn = document.getElementById('confirmCashout');
+    const playerNameEl = document.getElementById('playerName');
 
-   const usersDiv = document.getElementById('users');
-const winnerDiv = document.getElementById('winner');
-const rollBtn = document.getElementById('roll');
-const resetBtn = document.getElementById('reset');
-const keywordInput = document.getElementById('keyword');
+socket.on('activePlayer', (name) => {
+  if (name) {
+    playerNameEl.textContent = name;
 
-let currentUsers = [];
-let animating = false;
-
-function renderUsers(users) {
-  currentUsers = [...users];
-  usersDiv.innerHTML = '';
-
-  if (users.length === 0) {
-    usersDiv.textContent = 'No participants yet.';
-    return;
+  } else {
+    playerNameEl.textContent = 'No player';
+    playerAvatarEl.style.display = 'none';
+    playerAvatarEl.src = '';
   }
+});
 
-  users.forEach(user => {
-    const userBox = document.createElement('div');
-    userBox.textContent = user;
-    userBox.style.border = '2px solid #34495e';
-    userBox.style.borderRadius = '8px';
-    userBox.style.padding = '10px';
-    userBox.style.fontSize = '14px';
-    userBox.style.textAlign = 'center';
-    userBox.style.userSelect = 'none';
-    userBox.style.backgroundColor = '#ecf0f1';
-    userBox.classList.add('user-box');
-    usersDiv.appendChild(userBox);
+    socket.on('multiplierUpdate', (multiplier) => {
+      multiplierEl.textContent = `x${multiplier.toFixed(2)}`;
+    });
+
+    socket.on('showCashoutConfirm', () => {
+      confirmCashoutBtn.style.display = 'block';
+    });
+
+    confirmCashoutBtn.addEventListener('click', () => {
+      socket.emit('confirmCashout');
+      confirmCashoutBtn.style.display = 'none';
+    });
+
+    socket.on('log', (msg) => {
+      const div = document.createElement('div');
+      div.textContent = msg;
+
+      const match = msg.match(/difficulty.*\b(easy|medium|hard)\b/i);
+      if (match) {
+        const diff = match[1].toUpperCase();
+        difficultyEl.textContent = diff;
+        difficultyEl.className = diff.toLowerCase();
+      }
+
+      logEl.prepend(div);
+    });
+
+function renderGrid(grid) {
+  gridEl.innerHTML = '';
+  grid.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if (cell.revealed) {
+        div.classList.add(cell.bomb ? 'bomb' : 'revealed');
+        div.textContent = cell.bomb ? '💣' : '💎'; 
+      }
+      div.dataset.pos = `${y},${x}`;
+      gridEl.appendChild(div);
+    });
   });
 }
 
-socket.on('update', (users) => {
-  if (animating) return; 
-  renderUsers(users);
-});
 
-socket.on('winner', (winner) => {
-  winnerDiv.textContent = winner ? `🎉 Winner: ${winner} 🎉` : '';
-  animating = false;
-});
-
-rollBtn.onclick = () => {
-  if (animating || currentUsers.length === 0) return;
-  animating = true;
-  winnerDiv.textContent = '';
-
-  socket.emit('roll');
-};
-
-socket.on('winner', (winner) => {
-  animateWinnerPick(winner);
-});
-
-resetBtn.onclick = () => {
-  animating = false;
-  socket.emit('reset');
-  winnerDiv.textContent = '';
-};
-
-keywordInput.onchange = () => {
-  socket.emit('setKeyword', keywordInput.value.toLowerCase());
-};
-
-function animateWinnerPick(winner) {
-  let usersCopy = [...currentUsers];
-
-  function removeOne() {
-    if (usersCopy.length <= 1) {
-      highlightWinner();
-      return;
-    }
-
-    let removable = usersCopy.filter(u => u !== winner);
-    let toRemove = removable[Math.floor(Math.random() * removable.length)];
-
-    usersCopy = usersCopy.filter(u => u !== toRemove);
-
-    const boxes = Array.from(usersDiv.children);
-    boxes.forEach(box => {
-      if (box.textContent === toRemove) {
-        box.style.transition = 'opacity 0.3s';
-        box.style.opacity = '0';
-        setTimeout(() => box.remove(), 300);
-      }
+    gridEl.addEventListener('click', (e) => {
+      const cell = e.target.closest('.cell');
+      if (!cell || cell.classList.contains('revealed')) return;
+      const [y, x] = cell.dataset.pos.split(',').map(Number);
+      socket.emit('pick', { x, y });
     });
 
-    setTimeout(() => {
-      removeOne();
-    }, 200); 
-  }
-
-  function highlightWinner() {
-    const boxes = Array.from(usersDiv.children);
-    boxes.forEach(box => {
-      if (box.textContent === winner) {
-        box.style.backgroundColor = '#27ae60';
-        box.style.color = 'white';
-        box.style.fontWeight = 'bold';
-        box.style.fontSize = '18px';
-      } else {
-        box.remove();
-      }
-    });
-    winnerDiv.textContent = `🎉 Winner: ${winner} 🎉`;
-    animating = false;
-  }
-
-  removeOne();
-}
-
+    socket.on('updateGrid', renderGrid);
   </script>
 </body>
+</html>
