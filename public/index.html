@@ -43,6 +43,7 @@
       cursor: pointer;
       font-size: 20px;
       transition: all 0.2s ease;
+      
     }
     .cell.revealed {
       background: #00ffcc;
@@ -79,6 +80,7 @@
       font-size: 18px;
       color: #ccc;
       max-height: 600px;
+      margin-top: 11%;
     }
 
     #instructions h2 {
@@ -120,8 +122,15 @@
       color: #ddd;
       text-align: center;
       max-height: 600px;
-    }
+            margin-top: 11%;
 
+    }
+    #status h2 {
+      color: #ffaa00;
+    }
+#difficultyLevel{
+  font-size: 24px;
+}
     #currentMultiplier {
       font-size: 24px;
       font-weight: bold;
@@ -185,16 +194,16 @@
     const confirmCashoutBtn = document.getElementById('confirmCashout');
     const playerNameEl = document.getElementById('playerName');
 
-socket.on('activePlayer', (name) => {
-  if (name) {
-    playerNameEl.textContent = name;
+        socket.on('activePlayer', (name) => {
+          if (name) {
+            playerNameEl.textContent = name;
 
-  } else {
-    playerNameEl.textContent = 'No player';
-    playerAvatarEl.style.display = 'none';
-    playerAvatarEl.src = '';
-  }
-});
+          } else {
+            playerNameEl.textContent = 'No player';
+            playerAvatarEl.style.display = 'none';
+            playerAvatarEl.src = '';
+          }
+        });
 
     socket.on('multiplierUpdate', (multiplier) => {
       multiplierEl.textContent = `x${multiplier.toFixed(2)}`;

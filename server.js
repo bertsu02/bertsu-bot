@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 app.use(express.static('public'));
 
-const CHATROOM_ID = 255820;
+const CHATROOM_ID = 303210;
 let activePlayer = null;
 let activePlayerDisplayName = null;
 let safePicks = 0;
@@ -62,6 +62,7 @@ function handlePick({ x, y, username }) {
       resetGrid();
       io.emit('updateGrid', grid);
       io.emit('log', `🧼 Grid reset. Difficulty: ${difficulty.toUpperCase()} (${BOMB_COUNT} mines)`);
+      io.emit('multiplierUpdate', multiplier || 1);
     }, 3000);
   } else {
     safePicks++;
@@ -98,7 +99,7 @@ function connectToKickChat() {
 
         if (!username || !content) return;
 
-        const isAdmin = ['kevinlowroller','enrogambles','trannhi74'].includes(username.toLowerCase());
+        const isAdmin = ['bertsu', 'metron'].includes(username.toLowerCase());
 
         if (isAdmin && content.startsWith('!player')) {
           const newPlayer = content.split(' ')[1];
