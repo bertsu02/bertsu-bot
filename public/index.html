@@ -6,7 +6,9 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #121212;
+      background-image: url(./img/4001803.jpg);
+      background-size: cover;
+        background-position: center -200px;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -14,12 +16,12 @@
       padding: 20px;
     }
     h1 {
-      color: #00ffcc;
+      color: #ffaa00;
     }
     #activePlayer {
       margin-bottom: 10px;
       font-size: 18px;
-      color: #00ffcc;
+      color: #25c037;
     }
     #difficultyLabel {
       margin-bottom: 10px;
@@ -46,7 +48,7 @@
       
     }
     .cell.revealed {
-      background: #00ffcc;
+      background: #25c037;
       color: #000;
       cursor: default;
     }
@@ -54,11 +56,15 @@
       background: #ff4d4d;
       color: #000;
     }
-    #log {
-      margin-top: 20px;
-      max-width: 400px;
-      text-align: left;
-    }
+#log {
+  margin-top: 20px;
+  max-width: 400px;
+  text-align: left;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  height: 3em;
+}
     #log div {
       margin-bottom: 5px;
       font-size: 14px;
@@ -79,7 +85,7 @@
       border-radius: 10px;
       font-size: 18px;
       color: #ccc;
-      max-height: 600px;
+      max-height: 550px;
       margin-top: 11%;
     }
 
@@ -92,7 +98,7 @@
       background: #333;
       padding: 2px 4px;
       border-radius: 4px;
-      color: #00ffcc;
+      color: #25c037;
     }
 
     #game {
@@ -121,7 +127,7 @@
       font-family: monospace;
       color: #ddd;
       text-align: center;
-      max-height: 600px;
+      max-height: 550px;
             margin-top: 11%;
 
     }
@@ -134,7 +140,7 @@
     #currentMultiplier {
       font-size: 24px;
       font-weight: bold;
-      color: #00ffcc;
+      color: #25c037;
       margin: 10px 0;
     }
 
@@ -178,7 +184,7 @@
  <h2>Current Player</h2>
   <div id="playerInfo" style="margin-top: 20px; text-align: center;">
     <img id="playerAvatar" src="" alt="Player Avatar" style="width: 80px; height: 80px; border-radius: 50%; display: none; margin-bottom: 10px;" />
-    <div id="playerName" style="font-size: 18px; color: #00ffcc;">No player</div>
+    <div id="playerName" style="font-size: 18px; color: #25c037;">No player</div>
   </div>
 </div>
 
@@ -218,19 +224,24 @@
       confirmCashoutBtn.style.display = 'none';
     });
 
-    socket.on('log', (msg) => {
-      const div = document.createElement('div');
-      div.textContent = msg;
+socket.on('log', (msg) => {
+  const div = document.createElement('div');
+  div.textContent = msg;
 
-      const match = msg.match(/difficulty.*\b(easy|medium|hard)\b/i);
-      if (match) {
-        const diff = match[1].toUpperCase();
-        difficultyEl.textContent = diff;
-        difficultyEl.className = diff.toLowerCase();
-      }
+  const match = msg.match(/difficulty.*\b(easy|medium|hard)\b/i);
+  if (match) {
+    const diff = match[1].toUpperCase();
+    difficultyEl.textContent = diff;
+    difficultyEl.className = diff.toLowerCase();
+  }
 
-      logEl.prepend(div);
-    });
+  logEl.prepend(div);
+
+  while (logEl.children.length > 2) {
+    logEl.removeChild(logEl.lastChild);
+  }
+});
+
 
 function renderGrid(grid) {
   gridEl.innerHTML = '';
@@ -240,13 +251,23 @@ function renderGrid(grid) {
       div.className = 'cell';
       if (cell.revealed) {
         div.classList.add(cell.bomb ? 'bomb' : 'revealed');
-        div.textContent = cell.bomb ? '💣' : '💎'; 
+        if (cell.bomb) {
+          div.textContent = '💣';
+        } else {
+          const img = document.createElement('img');
+          img.src = './img/logo.png';
+          img.alt = 'Logo';
+          img.style.width = '60%';
+          img.style.height = '60%';
+          div.appendChild(img);
+        }
       }
       div.dataset.pos = `${y},${x}`;
       gridEl.appendChild(div);
     });
   });
 }
+
 
 
     gridEl.addEventListener('click', (e) => {

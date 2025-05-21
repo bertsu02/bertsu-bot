@@ -99,7 +99,7 @@ function connectToKickChat() {
 
         if (!username || !content) return;
 
-        const isAdmin = ['suryy', 'metron','artic'].includes(username.toLowerCase());
+        const isAdmin = ['suryy', 'metron','artic','bertsu'].includes(username.toLowerCase());
 
         if (isAdmin && content.startsWith('!player')) {
           const newPlayer = content.split(' ')[1];
