@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 app.use(express.static('public'));
 
-const CHATROOM_ID = 15856785;
+const CHATROOM_ID = 303210;
 let activePlayer = null;
 let activePlayerDisplayName = null;
 let safePicks = 0;
@@ -17,7 +17,6 @@ let BOMB_COUNT = 5;
 let gridSize = 5;
 let grid = [];
 
-// Removed static multipliers object
 
 function calculateMultiplier(gridSize, bombs, picksMade) {
   const totalCells = gridSize * gridSize;
@@ -25,7 +24,6 @@ function calculateMultiplier(gridSize, bombs, picksMade) {
   for (let i = 0; i < picksMade; i++) {
     survivalProb *= (totalCells - bombs - i) / (totalCells - i);
   }
-  // Inverse of survival probability is the payout multiplier
   return 1 / survivalProb;
 }
 
