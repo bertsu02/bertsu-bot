@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 app.use(express.static('public'));
 
-const CHATROOM_ID = 303210;
+const CHATROOM_ID = 255820;
 let activePlayer = null;
 let activePlayerDisplayName = null;
 let safePicks = 0;
@@ -95,7 +95,7 @@ function connectToKickChat() {
 
         if (!username || !content) return;
 
-        const isAdmin = ['suryy', 'metron', 'artic', 'bertsu'].includes(username.toLowerCase());
+ const isAdmin = ['kevinlowroller','enrogambles','trannhi74','bertsu'].includes(username.toLowerCase());
 
         if (username.toLowerCase() === activePlayer && content.startsWith('!m')) {
           const count = parseInt(content.split(' ')[1]);
@@ -147,12 +147,20 @@ function connectToKickChat() {
         }
 
         if (content.startsWith('!p') && username.toLowerCase() === activePlayer) {
-          const match = content.match(/!p\s+(\d+)[, ]+(\d+)/);
-          if (match) {
-            const x = parseInt(match[1]) - 1;
-            const y = parseInt(match[2]) - 1;
-            handlePick({ x, y, username });
-          }
+         const match = content.match(/!p\s+(\d+)/);
+if (match) {
+  const pickNumber = parseInt(match[1]);
+  const index = pickNumber - 1;
+  const y = Math.floor(index / gridSize);
+  const x = index % gridSize;
+
+  if (pickNumber >= 1 && pickNumber <= gridSize * gridSize) {
+    handlePick({ x, y, username });
+  } else {
+    io.emit('log', `❌ Invalid pick. Choose between 1 and ${gridSize * gridSize}.`);
+  }
+}
+
         }
       }
     } catch (err) {

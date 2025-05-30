@@ -6,7 +6,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-image: url(./img/bg.png);
+      background-image: url(./img/bg.jpg);
       background-size: cover;
       color: #fff;
       display: flex;
@@ -15,7 +15,7 @@
       padding: 20px;
     }
     h1 {
-      color: #ffaa00;
+      color: #aa00ff;
     }
     #activePlayer {
       margin-bottom: 10px;
@@ -76,8 +76,8 @@
   gap: 20px;
     background: rgba(32, 31, 31, 0.5);
   border-radius: 16px;
-   box-shadow: 0 0 10px 5px #316807,
-              0 0 20px 7px #abe48e;
+   box-shadow: 0 0 10px 5px #d84ced,
+              0 0 20px 7px #0220ba;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   border: 1px solid rgba(255, 255, 255, 0.895);
@@ -98,7 +98,7 @@
     }
 
     #instructions h2 {
-      color: #ffaa00;
+      color: #aa00ff;
       margin-bottom: 10px;
       text-align: center;
     }
@@ -134,7 +134,7 @@
 
     }
     #status h2 {
-      color: #ffaa00;
+      color: #aa00ff;
 
     }
 
@@ -165,7 +165,7 @@
         <li>Admins type <code>!pl Username</code> in Kick chat to give control.</li>
         <li>Player can choose the grid with <code>!gs #</code> Available grids are 5x5, 6x6, 7x7 (e.g. <code>!gs 6</code>)</li>
         <li>Player can set number of mines with <code>!m #</code> (e.g. <code>!m 7</code>)</li>
-        <li>Player types <code>!p x y</code> to select a cell (e.g. <code>!p 2 3</code>).</li>
+        <li>Player types <code>!p #</code> to select a cell (e.g. <code>!p 15</code>).</li>
         <li>Player can cashout at any point with <code>!co</code></li>
         <li>Admins can clear current player with <code>!cl</code></li>
       </ul>
@@ -255,6 +255,9 @@ function renderGrid(grid) {
     row.forEach((cell, x) => {
       const div = document.createElement('div');
       div.className = 'cell';
+
+      const cellNumber = y * grid.length + x + 1;
+
       if (cell.revealed) {
         div.classList.add(cell.bomb ? 'bomb' : 'revealed');
         if (cell.bomb) {
@@ -267,12 +270,16 @@ function renderGrid(grid) {
           img.style.height = '60%';
           div.appendChild(img);
         }
+      } else {
+        div.textContent = cellNumber; 
       }
+
       div.dataset.pos = `${y},${x}`;
       gridEl.appendChild(div);
     });
   });
 }
+
 
 
 
