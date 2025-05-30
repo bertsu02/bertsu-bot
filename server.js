@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const WebSocket = require('ws');
-const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -13,10 +12,16 @@ let activePlayer = null;
 let activePlayerDisplayName = null;
 let safePicks = 0;
 let difficulty = 'easy';
-let BOMB_COUNT = 5;
 let gridSize = 5;
+let BOMB_COUNT = getBombCount(difficulty);
 let grid = [];
 
+function getBombCount(difficulty) {
+  if (difficulty === 'easy') return 5;
+  if (difficulty === 'medium') return 7;
+  if (difficulty === 'hard') return 10;
+  return 5;
+}
 
 function calculateMultiplier(gridSize, bombs, picksMade) {
   const totalCells = gridSize * gridSize;
@@ -29,6 +34,7 @@ function calculateMultiplier(gridSize, bombs, picksMade) {
 
 function resetGrid() {
   safePicks = 0;
+  BOMB_COUNT = getBombCount(difficulty);
   grid = Array.from({ length: gridSize }, () =>
     Array.from({ length: gridSize }, () => ({
       revealed: false,
@@ -44,6 +50,7 @@ function resetGrid() {
       placed++;
     }
   }
+  console.log(`✅ Grid reset to ${difficulty.toUpperCase()} with ${BOMB_COUNT} mines`);
 }
 
 function handlePick({ x, y, username }) {
@@ -60,7 +67,6 @@ function handlePick({ x, y, username }) {
       io.emit('updateGrid', grid);
       io.emit('log', `🧼 Grid reset. Difficulty: ${difficulty.toUpperCase()} (${BOMB_COUNT} mines)`);
       io.emit('multiplierUpdate', 1);
-      io.emit('log', `📛 Grid size: ${gridSize}x${gridSize}, Mines: ${BOMB_COUNT}`);
     }, 3000);
   } else {
     safePicks++;
@@ -95,22 +101,7 @@ function connectToKickChat() {
 
         if (!username || !content) return;
 
- const isAdmin = ['kevinlowroller','enrogambles','trannhi74','bertsu'].includes(username.toLowerCase());
-
-        if (username.toLowerCase() === activePlayer && content.startsWith('!m')) {
-          const count = parseInt(content.split(' ')[1]);
-          const maxMines = gridSize * gridSize - 1;
-
-          if (!isNaN(count) && count >= 1 && count <= maxMines) {
-            BOMB_COUNT = count;
-            resetGrid();
-            io.emit('updateGrid', grid);
-            io.emit('log', `💣 Number of mines set to ${BOMB_COUNT} by ${username}`);
-            io.emit('multiplierUpdate', 1);
-          } else {
-            io.emit('log', `❌ Invalid mine count. Must be between 1 and ${maxMines}.`);
-          }
-        }
+        const isAdmin = ['kevinlowroller', 'enrogambles', 'trannhi74', 'bertsu'].includes(username.toLowerCase());
 
         if (isAdmin && content.startsWith('!pl')) {
           const newPlayer = content.split(' ')[1];
@@ -125,6 +116,31 @@ function connectToKickChat() {
           io.emit('activePlayer', null);
           io.emit('log', `🧹 Active player cleared by ${username}`);
         }
+
+        if (username.toLowerCase() === activePlayer) {
+            if (username.toLowerCase() === activePlayer && content.startsWith('!easy')) {
+            difficulty = 'easy';
+            resetGrid();
+            io.emit('updateGrid', grid);
+            io.emit('log', `🟢 ${username} set difficulty to EASY (5 mines)`);
+            io.emit('multiplierUpdate', 1);
+          }
+            if (username.toLowerCase() === activePlayer && content.startsWith('!medium')) {
+            difficulty = 'medium';
+            resetGrid();
+            io.emit('updateGrid', grid);
+            io.emit('log', `🟡 ${username} set difficulty to MEDIUM (7 mines)`);
+            io.emit('multiplierUpdate', 1);
+          }
+           if (username.toLowerCase() === activePlayer && content.startsWith('!hard')) {
+            difficulty = 'hard';
+            resetGrid();
+            io.emit('updateGrid', grid);
+            io.emit('log', `🔴 ${username} set difficulty to HARD (10 mines)`);
+            io.emit('multiplierUpdate', 1);
+          }
+        }
+
         if (username.toLowerCase() === activePlayer && content.startsWith('!co')) {
           if (!activePlayerDisplayName) {
             io.emit('log', `⚠️ No active player to cash out.`);
@@ -133,34 +149,21 @@ function connectToKickChat() {
             io.emit('showCashoutConfirm');
           }
         }
-        if (username.toLowerCase() === activePlayer && content.startsWith('!gs')) {
-          const size = parseInt(content.split(' ')[1]);
-          if ([5, 6, 7].includes(size)) {
-            gridSize = size;
-            resetGrid();
-            io.emit('updateGrid', grid);
-            io.emit('log', `📐 Grid size set to ${size}x${size} by ${username}`);
-            io.emit('multiplierUpdate', 1);
-          } else {
-            io.emit('log', `❌ Invalid grid size. Use 5, 6, 7.`);
-          }
-        }
 
         if (content.startsWith('!p') && username.toLowerCase() === activePlayer) {
-         const match = content.match(/!p\s+(\d+)/);
-if (match) {
-  const pickNumber = parseInt(match[1]);
-  const index = pickNumber - 1;
-  const y = Math.floor(index / gridSize);
-  const x = index % gridSize;
+          const match = content.match(/!p\s+(\d+)/);
+          if (match) {
+            const pickNumber = parseInt(match[1]);
+            const index = pickNumber - 1;
+            const y = Math.floor(index / gridSize);
+            const x = index % gridSize;
 
-  if (pickNumber >= 1 && pickNumber <= gridSize * gridSize) {
-    handlePick({ x, y, username });
-  } else {
-    io.emit('log', `❌ Invalid pick. Choose between 1 and ${gridSize * gridSize}.`);
-  }
-}
-
+            if (pickNumber >= 1 && pickNumber <= gridSize * gridSize) {
+              handlePick({ x, y, username });
+            } else {
+              io.emit('log', `❌ Invalid pick. Choose between 1 and ${gridSize * gridSize}.`);
+            }
+          }
         }
       }
     } catch (err) {

@@ -163,8 +163,8 @@
       <h2>Instructions</h2>
       <ul>
         <li>Admins type <code>!pl Username</code> in Kick chat to give control.</li>
-        <li>Player can choose the grid with <code>!gs #</code> Available grids are 5x5, 6x6, 7x7 (e.g. <code>!gs 6</code>)</li>
-        <li>Player can set number of mines with <code>!m #</code> (e.g. <code>!m 7</code>)</li>
+        <li>Player can set number of mines with <code>!easy,!medium,!hard </code></li>
+        <li>Easy is <code>5</code> mines, Medium is <code>7</code> and Hard is <code>10</code></li>
         <li>Player types <code>!p #</code> to select a cell (e.g. <code>!p 15</code>).</li>
         <li>Player can cashout at any point with <code>!co</code></li>
         <li>Admins can clear current player with <code>!cl</code></li>
@@ -186,6 +186,8 @@
     <img id="playerAvatar" src="" alt="Player Avatar" style="width: 80px; height: 80px; border-radius: 50%; display: none; margin-bottom: 10px;" />
     <div id="playerName" style="font-size: 18px; color: #25c037;">No player</div>
   </div>
+  <h2>Difficulty: </h2>
+  <span id="difficultyValue" style="font-size: 18px; color: #25c037;">Easy</span>
   <h2>Game Logs</h2>
        <div id="log"></div>
 </div>
